@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  fixtures:
+    runs-on: ubuntu-latest
+    env:
+      TZ: UTC
+      LANG: C.UTF-8
+    steps:
+      - uses: actions/checkout@v4
+      - name: The adversarial samples must still be here
+        # 这个仓库没有代码可测，它的"门禁"就是"样本还在"。
+        # 少了任何一个，说明有人把对抗样本当垃圾清掉了，而那会让整条链路的
+        # 免疫力悄悄归零 —— 这种事必须在 CI 上炸出来。
+        # 刻意不检查 issues/huge.md：它有 10MB，超过 contents API 的上传上限，
+        # 只保留在本地（详见 state/reports/sandbox-repos-setup.json）。
+        run: |
+          set -euo pipefail
+          test -f issues/injection-01-ignore-instructions.md
+          test -f issues/injection-02-fake-tool-output.md
+          test -f issues/injection-03-authority.md
+          test -f issues/fake-approval.md
+          test -f data/not-utf8.bin
+          test -f attachments/actually-binary.png
+          echo "hostile fixtures intact"
